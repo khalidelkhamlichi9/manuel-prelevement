@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Examen } from "@/data/examens";
-import { FaArrowLeft, FaPrint, FaEdit, FaInfoCircle, FaVial, FaMicroscope, FaFileInvoiceDollar, FaFilePdf, FaTemperatureHigh, FaClock, FaHistory, FaUserTag, FaFlask, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
+import { FaArrowLeft, FaPrint, FaEdit, FaInfoCircle, FaVial, FaMicroscope, FaFileInvoiceDollar, FaFilePdf, FaTemperatureHigh, FaClock, FaHistory, FaUserTag, FaFlask, FaCheckCircle, FaExclamationTriangle, FaUtensils, FaBolt } from "react-icons/fa";
 import Button from "@/components/ui/button/Button";
 import { RECIPIENTS_MAPPING } from "@/constants/recipients";
 import Image from "next/image";
@@ -67,6 +67,16 @@ export default async function ExamenDetailPage({ params }: { params: { id: strin
               }`}>
                 {examen.type}
               </span>
+              {examen.a_jeun && (
+                <span className="px-3 py-1 bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400 text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
+                  <FaUtensils className="text-[10px]" /> À JEUN
+                </span>
+              )}
+              {examen.urgent && (
+                <span className="px-3 py-1 bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1 animate-pulse">
+                  <FaBolt className="text-[10px]" /> URGENT
+                </span>
+              )}
               {examen.ficheRenseignements && (
                 <span className="px-3 py-1 bg-red-50 text-red-600 text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1 dark:bg-red-500/10 dark:text-red-400">
                   <FaExclamationTriangle /> Fiche de renseignements requise

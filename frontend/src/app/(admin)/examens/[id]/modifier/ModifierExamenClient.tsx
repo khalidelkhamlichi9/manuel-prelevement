@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
@@ -19,20 +18,20 @@ interface DynamicOption {
   nom: string;
 }
 
+interface ModifierExamenClientProps {
+  id: string;
+}
 
-export default function NouveauExamenPage() {
+export default function ModifierExamenClient({ id }: ModifierExamenClientProps) {
   const router = useRouter();
+  
   const [isMounting, setIsMounting] = useState(true);
   const [specialites, setSpecialites] = useState<DynamicOption[]>([]);
   const [laboratoires, setLaboratoires] = useState<DynamicOption[]>([]);
-  const [examens, setExamens] = useState<Examen[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
-  useEffect(() => {
-    setIsMounting(false);
-  }, []);
-
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     nom: "",
     code: "",
     code_kalisil: "",
@@ -47,33 +46,88 @@ export default function NouveauExamenPage() {
     technique: "",
     delai: "",
     cotation: "",
-    prix: ""
+    prix: "",
+    synonymes: [],
+    nature: "",
+    volume: "",
+    echantillon: "",
+    preparationPatient: "",
+    instructionsComplementaires: "",
+    conditions: [],
+    commentaires: [],
+    ficheRenseignements: false,
+    temperatureTransport: "",
+    frequence: "",
+    dureeConservation: "",
+    temperatureConservation: "",
+    dureeStabiliteTheorique: "",
+    lienExterne: ""
   });
 
   useEffect(() => {
-    const fetchOptions = async () => {
+    const fetchData = async () => {
       try {
-        const [specs, labs, examensData] = await Promise.all([
+        setFetching(true);
+        const [examenData, specs, labs] = await Promise.all([
+          apiClient.get<Examen>(`/api/v1/examens/${id}`),
           apiClient.get<DynamicOption[]>("/api/v1/specialites/"),
-          apiClient.get<DynamicOption[]>("/api/v1/laboratoires/"),
-          apiClient.get<Examen[]>("/api/v1/examens/")
+          apiClient.get<DynamicOption[]>("/api/v1/laboratoires/")
         ]);
+
+        setFormData({
+          nom: examenData.nom || "",
+          code: examenData.code || "",
+          code_kalisil: examenData.code_kalisil || "",
+          specialite: examenData.specialite || "",
+          laboratoireExecutant: examenData.laboratoireExecutant || "",
+          type: examenData.type || "Interne",
+          a_jeun: !!examenData.a_jeun,
+          urgent: !!examenData.urgent,
+          recipients: examenData.recipients || [],
+          typePrelevement: examenData.typePrelevement || "",
+          quantiteMinimale: examenData.quantiteMinimale || "",
+          technique: examenData.technique || "",
+          delai: examenData.delai || "",
+          cotation: examenData.cotation || "",
+          prix: examenData.prix || "",
+          synonymes: examenData.synonymes || [],
+          nature: examenData.nature || "",
+          volume: examenData.volume || "",
+          echantillon: examenData.echantillon || "",
+          preparationPatient: examenData.preparationPatient || "",
+          instructionsComplementaires: examenData.instructionsComplementaires || "",
+          conditions: examenData.conditions || [],
+          commentaires: examenData.commentaires || [],
+          ficheRenseignements: !!examenData.ficheRenseignements,
+          temperatureTransport: examenData.temperatureTransport || "",
+          frequence: examenData.frequence || "",
+          dureeConservation: examenData.dureeConservation || "",
+          temperatureConservation: examenData.temperatureConservation || "",
+          dureeStabiliteTheorique: examenData.dureeStabiliteTheorique || "",
+          lienExterne: examenData.lienExterne || ""
+        });
+
         setSpecialites(specs);
         setLaboratoires(labs);
-        setExamens(examensData);
       } catch (error) {
-        console.error("Erreur:", error);
+        console.error("Erreur lors de la récupération des données:", error);
+        alert("Impossible de charger les données de l'examen.");
+        router.push("/examens");
+      } finally {
+        setFetching(false);
+        setIsMounting(false);
       }
     };
-    fetchOptions();
-  }, []);
 
-  const toggleRecipient = (id: string) => {
+    fetchData();
+  }, [id, router]);
+
+  const toggleRecipient = (recId: string) => {
     setFormData(prev => ({
       ...prev,
-      recipients: prev.recipients.includes(id)
-        ? prev.recipients.filter(r => r !== id)
-        : [...prev.recipients, id]
+      recipients: prev.recipients.includes(recId)
+        ? prev.recipients.filter(r => r !== recId)
+        : [...prev.recipients, recId]
     }));
   };
 
@@ -85,30 +139,19 @@ export default function NouveauExamenPage() {
 
     try {
       setLoading(true);
-      
-      // Generate an ID if not present (using code or random)
-      const examenId = formData.code || `EX-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-      
-      const payload = {
-        ...formData,
-        id: examenId,
-        // Match backend schema names if they differ
-        // backend uses 'typePrelevement' which we have in formData
-      };
-
-      await apiClient.post("/api/v1/examens/", payload);
-      
-      alert("Examen enregistré avec succès !");
-      router.push("/examens");
+      await apiClient.put(`/api/v1/examens/${id}`, formData);
+      alert("Examen mis à jour avec succès !");
+      router.push(`/examens/${id}`);
+      router.refresh();
     } catch (error: any) {
-      console.error("Error saving exam:", error);
-      alert(`Erreur lors de l'enregistrement: ${error.response?.data?.detail || error.message}`);
+      console.error("Error updating exam:", error);
+      alert(`Erreur lors de la mise à jour: ${error.response?.data?.detail || error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  if (isMounting) {
+  if (fetching || isMounting) {
     return (
       <div className="max-w-5xl mx-auto space-y-8 animate-pulse">
         <div className="flex justify-between items-center">
@@ -116,37 +159,22 @@ export default function NouveauExamenPage() {
             <div className="h-8 w-64 bg-gray-200 dark:bg-gray-800 rounded-lg" />
             <div className="h-4 w-48 bg-gray-100 dark:bg-gray-800/50 rounded-lg" />
           </div>
-          <div className="flex gap-3">
-            <div className="h-10 w-24 bg-gray-200 dark:bg-gray-800 rounded-lg" />
-            <div className="h-10 w-40 bg-gray-200 dark:bg-gray-800 rounded-lg" />
-          </div>
         </div>
-        <div className="h-[500px] w-full bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-gray-800 rounded-2xl p-8 space-y-6">
-          <div className="h-6 w-48 bg-gray-200 dark:bg-gray-800 rounded-md mb-8" />
-          <div className="grid grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="space-y-2">
-                <div className="h-4 w-24 bg-gray-200 dark:bg-gray-800 rounded-md" />
-                <div className="h-11 w-full bg-gray-50 dark:bg-gray-800/50 rounded-xl" />
-              </div>
-            ))}
-          </div>
-        </div>
+        <div className="h-[500px] w-full bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-gray-800 rounded-2xl p-8" />
       </div>
     );
   }
-
 
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white font-['Poppins'] tracking-tight">Ajouter un nouvel examen</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Remplissez les détails techniques du prélèvement.</p>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white font-['Poppins'] tracking-tight">Modifier l'examen</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">ID: {id}</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/examens"><Button variant="outline" size="sm">Annuler</Button></Link>
-          <Button variant="primary" size="sm" startIcon={<FaSave />} onClick={handleSave} loading={loading}>Enregistrer l'examen</Button>
+          <Link href={`/examens/${id}`}><Button variant="outline" size="sm">Annuler</Button></Link>
+          <Button variant="primary" size="sm" startIcon={<FaSave />} onClick={handleSave} loading={loading}>Enregistrer les modifications</Button>
         </div>
       </div>
 
@@ -163,52 +191,33 @@ export default function NouveauExamenPage() {
             </div>
 
             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div><Label>Spécialité</Label><Select placeholder="Choisir..." options={specialites.map(s => ({ label: s.nom, value: s.nom }))} onChange={(val) => setFormData({ ...formData, specialite: val })} /></div>
-              <div><Label>Laboratoire Exécutant</Label><Select placeholder="Choisir..." options={laboratoires.map(l => ({ label: l.nom, value: l.nom }))} onChange={(val) => setFormData({ ...formData, laboratoireExecutant: val })} /></div>
+              <div><Label>Spécialité</Label><Select placeholder="Choisir..." value={formData.specialite} options={specialites.map(s => ({ label: s.nom, value: s.nom }))} onChange={(val) => setFormData({ ...formData, specialite: val })} /></div>
+              <div><Label>Laboratoire Exécutant</Label><Select placeholder="Choisir..." value={formData.laboratoireExecutant} options={laboratoires.map(l => ({ label: l.nom, value: l.nom }))} onChange={(val) => setFormData({ ...formData, laboratoireExecutant: val })} /></div>
               <div><Label>Type d'examen</Label><Select placeholder="Choisir..." options={[{ label: "Interne", value: "Interne" }, { label: "Externe (Cerba)", value: "Externe (Cerba)" }]} value={formData.type} onChange={(val) => setFormData({ ...formData, type: val })} /></div>
             </div>
 
-            <div className="md:col-span-1">
-              <label className="flex items-center gap-2 text-[10px] font-bold text-orange-500 uppercase mb-2 ml-1">
-                <FaUtensils /> Examens à jeun courants
-              </label>
-              <select
-                className="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-700 dark:text-gray-300 outline-none cursor-pointer focus:ring-2 focus:ring-brand-500/20"
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setFormData({ ...formData, nom: e.target.value, a_jeun: true });
-                  }
-                }}
-              >
-                <option value="">Sélectionner...</option>
-                {examens.filter(ex => ex.a_jeun).map(ex => (
-                  <option key={ex.id} value={ex.nom}>{ex.nom}</option>
-                ))}
-              </select>
-            </div>
+            <div className="flex gap-8 md:col-span-2">
+               <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className={`w-10 h-6 rounded-full p-1 transition-colors ${formData.a_jeun ? 'bg-orange-500' : 'bg-gray-200 dark:bg-gray-700'}`} onClick={() => setFormData({...formData, a_jeun: !formData.a_jeun})}>
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${formData.a_jeun ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                    <FaUtensils className={formData.a_jeun ? 'text-orange-500' : 'text-gray-400'} /> À JEUN
+                  </span>
+               </label>
 
-            <div className="md:col-span-1">
-              <label className="flex items-center gap-2 text-[10px] font-bold text-red-500 uppercase mb-2 ml-1">
-                <FaBolt /> Examens urgents courants
-              </label>
-              <select
-                className="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-700 dark:text-gray-300 outline-none cursor-pointer focus:ring-2 focus:ring-brand-500/20"
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setFormData({ ...formData, nom: e.target.value, urgent: true });
-                  }
-                }}
-              >
-                <option value="">Sélectionner...</option>
-                {examens.filter(ex => ex.urgent).map(ex => (
-                  <option key={ex.id} value={ex.nom}>{ex.nom}</option>
-                ))}
-              </select>
+               <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className={`w-10 h-6 rounded-full p-1 transition-colors ${formData.urgent ? 'bg-red-500' : 'bg-gray-200 dark:bg-gray-700'}`} onClick={() => setFormData({...formData, urgent: !formData.urgent})}>
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${formData.urgent ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                    <FaBolt className={formData.urgent ? 'text-red-500' : 'text-gray-400'} /> URGENT
+                  </span>
+               </label>
             </div>
           </div>
         </div>
 
-        {/* Section Récipients mise à jour */}
         <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-6 shadow-sm">
           <h3 className="text-lg font-bold text-[#26AAD9] mb-6 flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-3 font-['Poppins']"><FaVial /> Phase Pré-analytique</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -238,7 +247,6 @@ export default function NouveauExamenPage() {
                         alt={rec.label}
                         className="w-full h-full object-contain"
                         onError={(e) => {
-                          // Fallback si l'image n'existe pas encore
                           (e.target as any).src = "https://placehold.co/40x80?text=Tube";
                         }}
                       />

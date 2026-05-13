@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { FaEdit, FaPrint, FaTrash } from "react-icons/fa";
 import Button from "@/components/ui/button/Button";
 import apiClient from "@/lib/apiClient";
@@ -38,9 +39,11 @@ export default function HeaderActions({ examenId }: HeaderActionsProps) {
       <Button variant="outline" size="sm" startIcon={<FaPrint />}>
         Print Sticker
       </Button>
-      <Button variant="primary" size="sm" startIcon={<FaEdit />}>
-        Modifier
-      </Button>
+      <Link href={`/examens/${examenId}/modifier`}>
+        <Button variant="primary" size="sm" startIcon={<FaEdit />}>
+          Modifier
+        </Button>
+      </Link>
       <Button 
         variant="outline" 
         size="sm" 

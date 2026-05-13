@@ -4,6 +4,7 @@ export interface Examen {
   synonymes: string[];
   codeNABM?: string;
   code?: string;
+  code_kalisil?: string;
   specialite?: string;
   type: 'Interne' | 'Externe (Cerba)' | string;
   laboratoireExecutant?: string;
@@ -25,6 +26,7 @@ export interface Examen {
   // Pré-analytique
   nature?: string;
   volume?: string;
+  typePrelevement?: string;
   typePrélèvement?: string;
   echantillon?: string;
   quantiteMinimale?: string;
@@ -49,6 +51,8 @@ export interface Examen {
 
   // Liens
   lienExterne?: string;
+  a_jeun?: boolean;
+  urgent?: boolean;
 }
 
 export const examensMock: Examen[] = [
@@ -61,7 +65,7 @@ export const examensMock: Examen[] = [
     type: "Interne",
     laboratoireExecutant: "CENTRE DE BIOLOGIE AL WIFAK",
     revisionDate: "05/06/2024 13:38:43",
-    recipients: ["vert", "bleu", "rouge", "violet", "jaune"],
+    recipients: ["heparine", "citrate", "sec_activateur", "edta", "sst"],
     cotation: "B 400 - Code acte : 0383",
     prix: "440 MAD",
     principalesIndications: "Stéroïde intermédiaire dans la biosynthèse des glucocorticoïdes et des androgènes,elle provient de la progestérone et/ou des la 17 OH-prégnénolone. Elle est métabolisée en delta-4-androsténédione (voie des androgènes) ou en 11-désoxycortisol (voie des glucocorticoïdes). Le catabolite urinaire est le prégnanetriol. L'intérêt de son dosage réside dans l'exploration des hyperandrogénies liées à un déficit enzymatique surrénalien en 21-hydroxylase. Rythme circadien.",
@@ -98,7 +102,7 @@ export const examensMock: Examen[] = [
     prix: "560 MAD", // Equivalent MAD approx
     nature: "Sérum",
     volume: "1 ml",
-    recipients: ["rouge"],
+    recipients: ["sec_activateur"],
     temperatureTransport: "Réfrigéré",
     technique: "LC-MS-MS",
     frequence: "1/s",
@@ -115,7 +119,7 @@ export const examensMock: Examen[] = [
     specialite: "Diabétologie",
     type: "Externe (Cerba)",
     laboratoireExecutant: "Cerba",
-    recipients: ["gris"], 
+    recipients: ["fluorure"],
     prixFixe: true,
     cotation: "B 100",
     prix: "110 MAD",
