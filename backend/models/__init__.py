@@ -4,5 +4,7 @@ from .document import Document
 from .notification import Notification
 from .specialite import Specialite
 from .laboratoire import Laboratoire
+from .campaign import Campaign
+from .dossier import DossierExamen
 
-__all__ = ["User", "Examen", "Document", "Notification", "Specialite", "Laboratoire"]
+__all__ = ["User", "Examen", "Document", "Notification", "Specialite", "Laboratoire", "Campaign", "DossierExamen"]

@@ -1,9 +1,10 @@
 "use client";
-import React, { useEffect, useRef, useState,useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
+import { useAuth } from "../context/AuthContext";
 import {
   BoxCubeIcon,
   CalenderIcon,
@@ -23,6 +24,7 @@ type NavItem = {
   icon: React.ReactNode;
   path?: string;
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  roles?: string[]; // "laboratoire" | "client"
 };
 
 const navItems: NavItem[] = [
@@ -30,21 +32,37 @@ const navItems: NavItem[] = [
     icon: <GridIcon />,
     name: "Dashboard",
     path: "/",
+    roles: ["laboratoire", "client"],
   },
   {
     icon: <ListIcon />,
     name: "Examens",
     path: "/examens",
+    roles: ["laboratoire", "client"],
   },
   {
     icon: <PageIcon />,
     name: "Documents",
     path: "/documents",
+    roles: ["laboratoire", "client"],
   },
   {
     icon: <CalenderIcon />,
     name: "Calendrier",
     path: "/calendar",
+    roles: ["laboratoire"],
+  },
+  {
+    icon: <UserCircleIcon />,
+    name: "Utilisateurs",
+    path: "/utilisateurs",
+    roles: ["laboratoire"],
+  },
+  {
+    icon: <PieChartIcon />,
+    name: "Marketing",
+    path: "/marketing",
+    roles: ["laboratoire"],
   },
 ];
 
@@ -171,6 +189,7 @@ MenuItem.displayName = "MenuItem";
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { user } = useAuth();
   const pathname = usePathname();
 
   const [openSubmenu, setOpenSubmenu] = useState<{
@@ -181,6 +200,13 @@ const AppSidebar: React.FC = () => {
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
+
+  // Filter nav items based on user role
+  const filteredNavItems = navItems.filter((item) => {
+    if (!item.roles) return true;
+    if (!user) return false;
+    return item.roles.includes(user.role);
+  });
 
   const handleSubmenuToggle = useCallback((index: number, menuType: "main" | "others") => {
     setOpenSubmenu((prevOpenSubmenu) => {
@@ -297,7 +323,7 @@ const AppSidebar: React.FC = () => {
                 )}
               </h2>
               <ul className="flex flex-col gap-4">
-                {navItems.map((nav, index) => (
+                {filteredNavItems.map((nav, index) => (
                   <MenuItem
                     key={nav.name}
                     nav={nav}

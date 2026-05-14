@@ -8,6 +8,8 @@ from api.v1.documents import router as documents_router
 from api.v1.notifications import router as notifications_router
 from api.v1.specialites import router as specialites_router
 from api.v1.laboratoires import router as laboratoires_router
+from api.v1.marketing import router as marketing_router
+from api.v1.dossiers import router as dossiers_router
 import uvicorn
 import logging
 
@@ -46,6 +48,8 @@ app.include_router(documents_router, prefix="/api/v1/documents", tags=["Document
 app.include_router(notifications_router, prefix="/api/v1/notifications", tags=["Notifications"])
 app.include_router(specialites_router, prefix="/api/v1/specialites", tags=["Spécialités"])
 app.include_router(laboratoires_router, prefix="/api/v1/laboratoires", tags=["Laboratoires"])
+app.include_router(marketing_router, prefix="/api/v1/marketing", tags=["Marketing"])
+app.include_router(dossiers_router, prefix="/api/v1/dossiers", tags=["Dossiers"])
 
 @app.get("/")
 async def root():

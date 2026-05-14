@@ -9,6 +9,7 @@ import { useSearch } from "@/context/SearchContext";
 import apiClient from "@/lib/apiClient";
 import { RECIPIENTS_MAPPING } from "@/constants/recipients";
 import { Examen } from "@/data/examens";
+import { useAuth } from "@/context/AuthContext";
 
 interface DynamicOption {
   id: number;
@@ -16,6 +17,7 @@ interface DynamicOption {
 }
 
 export default function ExamensPage() {
+  const { user } = useAuth();
   const { searchQuery, setSearchQuery } = useSearch();
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [examens, setExamens] = useState<Examen[]>([]);
@@ -125,11 +127,13 @@ export default function ExamensPage() {
           >
             Filtres
           </Button>
-          <Link href="/examens/nouveau">
-            <Button size="sm" variant="primary" startIcon={<PlusIcon className="w-4 h-4" />}>
-              Ajouter un examen
-            </Button>
-          </Link>
+          {user?.role === "laboratoire" && (
+            <Link href="/examens/nouveau">
+              <Button size="sm" variant="primary" startIcon={<PlusIcon className="w-4 h-4" />}>
+                Ajouter un examen
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
